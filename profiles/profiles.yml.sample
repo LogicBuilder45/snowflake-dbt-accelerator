@@ -1,0 +1,38 @@
+snowflake_dbt_accelerator:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "<your_account>.snowflakecomputing.com"
+      user: "<your_user>"
+      password: "<your_password>"
+      role: TRANSFORMER
+      database: ANALYTICS_DEV
+      warehouse: TRANSFORMING_WH
+      schema: "DBT_{{ env_var('USER', 'DEV') }}"
+      threads: 4
+      query_tag: dbt_dev
+
+    ci:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: TRANSFORMER_CI
+      database: ANALYTICS_CI
+      warehouse: TRANSFORMING_WH_CI
+      schema: "{{ env_var('DBT_TARGET_SCHEMA') }}"
+      threads: 8
+      query_tag: dbt_ci
+
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER_PROD') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      role: TRANSFORMER_PROD
+      database: ANALYTICS
+      warehouse: TRANSFORMING_WH_PROD
+      schema: CORE
+      threads: 16
+      query_tag: dbt_prod

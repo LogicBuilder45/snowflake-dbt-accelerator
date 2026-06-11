@@ -1,0 +1,92 @@
+name: 'snowflake_dbt_accelerator'
+version: '1.0.0'
+config-version: 2
+
+profile: 'snowflake_dbt_accelerator'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+docs-paths: ["docs"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# -------------------------------------------------------
+# Global variable defaults
+# -------------------------------------------------------
+vars:
+  # Lookback window for incremental models (override per environment)
+  incremental_lookback_days: 3
+  # Audit column defaults
+  dbt_run_id: "{{ invocation_id }}"
+  # Date range for date dimension seed
+  date_dim_start: '2015-01-01'
+  date_dim_end: '2035-12-31'
+
+# -------------------------------------------------------
+# Model configurations by layer
+# -------------------------------------------------------
+models:
+  snowflake_dbt_accelerator:
+
+    staging:
+      +materialized: view
+      +schema: staging
+      # Transient = no Fail-Safe = lower Snowflake storage costs for ephemeral staging views
+      +transient: true
+      +tags: ['staging']
+      +meta:
+        owner: 'data-engineering'
+        layer: 'staging'
+
+    intermediate:
+      +materialized: ephemeral
+      +tags: ['intermediate']
+      +meta:
+        owner: 'data-engineering'
+        layer: 'intermediate'
+
+    marts:
+      +materialized: table
+      +schema: core
+      +tags: ['marts']
+      +meta:
+        owner: 'data-engineering'
+        layer: 'marts'
+
+      # Fact tables: incremental by default
+      facts:
+        +materialized: incremental
+        +incremental_strategy: merge
+        +on_schema_change: append_new_columns
+
+      # Dimension tables: full table refresh
+      dimensions:
+        +materialized: table
+
+# -------------------------------------------------------
+# Snapshot configuration
+# -------------------------------------------------------
+snapshots:
+  snowflake_dbt_accelerator:
+    +target_schema: snapshots
+    +strategy: timestamp
+    +updated_at: updated_at
+
+# -------------------------------------------------------
+# Seed configuration
+# -------------------------------------------------------
+seeds:
+  snowflake_dbt_accelerator:
+    +schema: reference
+    date_dim:
+      +column_types:
+        date_day: date
+        year_number: integer
+        month_number: integer

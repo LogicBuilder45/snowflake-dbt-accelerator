@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Cleaned and typed customer records, one row per customer."
+    columns:
+      - name: customer_key
+        description: "MD5 surrogate key derived from customer_id."
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: email_address
+        tests:
+          - not_null
+          - not_null_proportion:
+              at_least: 0.99
+      - name: created_at
+        tests: [not_null, no_future_dates]
+
+  - name: stg_orders
+    description: "Cleaned and typed order records, one row per order."
+    columns:
+      - name: order_key
+        tests: [not_null, unique]
+      - name: order_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: order_status
+        tests:
+          - accepted_values:
+              values: ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
+      - name: order_amount
+        tests: [not_null]

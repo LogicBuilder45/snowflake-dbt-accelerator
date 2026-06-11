@@ -1,0 +1,42 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw data landed by the ingestion pipeline. Do not use directly — always access through staging models."
+    database: "{{ env_var('RAW_DATABASE', 'RAW') }}"
+    schema: public
+    loader: fivetran
+
+    freshness:
+      warn_after: {count: 12, period: hour}
+      error_after: {count: 24, period: hour}
+
+    tables:
+      - name: customers
+        description: "One row per customer account."
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: id
+            description: "Source system customer identifier."
+            tests: [not_null, unique]
+          - name: email
+            tests: [not_null]
+          - name: created_at
+            tests: [not_null, no_future_dates]
+
+      - name: orders
+        description: "One row per order placed."
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: id
+            tests: [not_null, unique]
+          - name: customer_id
+            tests:
+              - not_null
+              - relationships:
+                  to: source('raw', 'customers')
+                  field: id
+          - name: status
+            tests:
+              - accepted_values:
+                  values: ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
