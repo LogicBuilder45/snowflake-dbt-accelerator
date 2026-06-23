@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: >
+      Conformed customer dimension. One row per customer, enriched
+      with lifetime order metrics and a behavioural segment label.
+    tests:
+      - row_count_in_range:
+          min_rows: 1
+    columns:
+      - name: customer_key
+        description: "Surrogate key — MD5 of customer_id."
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+      - name: email_address
+        tests:
+          - not_null
+      - name: is_active
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+      - name: lifetime_order_count
+        tests:
+          - not_null
+          - accepted_range:
+              min_value: 0
+      - name: lifetime_revenue
+        tests:
+          - not_null
+          - accepted_range:
+              min_value: 0
+      - name: cancelled_order_count
+        tests:
+          - not_null
+          - accepted_range:
+              min_value: 0
+      - name: customer_segment
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["never_ordered", "one_time", "repeat", "loyal"]
+      - name: first_order_at
+        tests:
+          - no_future_dates
+      - name: most_recent_order_at
+        tests:
+          - no_future_dates
+          - expression_is_true:
+              expression: "most_recent_order_at >= first_order_at or most_recent_order_at is null"
