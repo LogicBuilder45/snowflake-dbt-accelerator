@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: >
+      Core order fact table. One row per order. Incremental merge on
+      order_key with a 3-day lookback window for late-arriving data.
+    tests:
+      - row_count_in_range:
+          min_rows: 1
+    columns:
+      - name: order_key
+        tests:
+          - not_null
+          - unique
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+      - name: customer_key
+        tests:
+          - not_null
+          - referential_integrity:
+              to: ref("dim_customers")
+              field: customer_key
+      - name: order_status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["pending", "processing", "shipped", "delivered", "cancelled"]
+      - name: order_amount
+        tests:
+          - not_null
+          - accepted_range:
+              min_value: 0
+      - name: days_to_ship
+        tests:
+          - accepted_range:
+              min_value: 0
+      - name: days_in_transit
+        tests:
+          - accepted_range:
+              min_value: 0
+      - name: days_to_deliver
+        tests:
+          - accepted_range:
+              min_value: 0
+      - name: is_cancelled
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+      - name: is_delivered
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+      - name: ordered_at
+        tests:
+          - not_null
+          - no_future_dates
+      - name: shipped_at
+        tests:
+          - no_future_dates
+          - expression_is_true:
+              expression: "shipped_at >= ordered_at or shipped_at is null"
+      - name: delivered_at
+        tests:
+          - no_future_dates
+          - expression_is_true:
+              expression: "delivered_at >= shipped_at or delivered_at is null"
