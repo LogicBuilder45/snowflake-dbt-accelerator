@@ -1,4 +1,4 @@
-#snowflake-dbt-accelerator
+## snowflake-dbt-accelerator
 
 A practical, plug-and-play dbt starter project for Snowflake that gives teams a clean foundation for staging, testing, and analytics-ready marts without forcing unnecessary complexity.
 
