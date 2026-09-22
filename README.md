@@ -1,4 +1,4 @@
-# ?? snowflake-dbt-accelerator
+#snowflake-dbt-accelerator
 
 A practical, plug-and-play dbt starter project for Snowflake that gives teams a clean foundation for staging, testing, and analytics-ready marts without forcing unnecessary complexity.
 
@@ -17,17 +17,17 @@ This repo is intentionally opinionated but lightweight: it helps new data teams 
 ```text
 snowflake-dbt-accelerator/
 +-- .github/
-¦   +-- workflows/
-¦       +-- dbt-ci.yml
+Â¦   +-- workflows/
+Â¦       +-- dbt-ci.yml
 +-- analyses/
 +-- docs/
 +-- macros/
-¦   +-- audit/
-¦   +-- incremental/
-¦   +-- testing/
+Â¦   +-- audit/
+Â¦   +-- incremental/
+Â¦   +-- testing/
 +-- models/
-¦   +-- marts/
-¦   +-- staging/
+Â¦   +-- marts/
+Â¦   +-- staging/
 +-- snapshots/
 +-- tests/
 +-- .env.example
