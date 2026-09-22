@@ -13,6 +13,7 @@ renamed as (
 
         -- attributes
         lower(trim(email))                   as email_address,
+        case when trim(email) is not null and trim(email) <> '' then true else false end as is_active,
         trim(first_name)                     as first_name,
         trim(last_name)                      as last_name,
         trim(first_name || ' ' || last_name) as full_name,

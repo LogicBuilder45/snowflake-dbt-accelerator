@@ -59,12 +59,12 @@ final as (
         o.delivered_at,
 
         -- derived metrics
-        datediff("day", o.ordered_at, o.shipped_at)                as days_to_ship,
-        datediff("day", o.shipped_at, o.delivered_at)              as days_in_transit,
-        datediff("day", o.ordered_at, o.delivered_at)              as days_to_deliver,
+        datediff(day, o.ordered_at, o.shipped_at)                  as days_to_ship,
+        datediff(day, o.shipped_at, o.delivered_at)                as days_in_transit,
+        datediff(day, o.ordered_at, o.delivered_at)                as days_to_deliver,
 
         -- flags
-        (o.order_status = "cancelled")                             as is_cancelled,
+        (o.order_status = 'cancelled')                             as is_cancelled,
         (o.delivered_at is not null)                               as is_delivered,
 
         -- audit

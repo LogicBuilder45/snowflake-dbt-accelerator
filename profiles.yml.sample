@@ -1,0 +1,38 @@
+snowflake_dbt_accelerator:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'TRANSFORMER') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'ANALYTICS_DEV') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'TRANSFORMING_WH') }}"
+      schema: "{{ env_var('DBT_TARGET_SCHEMA', 'DBT_DEV') }}"
+      threads: 4
+      query_tag: dbt_dev
+
+    ci:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'TRANSFORMER_CI') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'ANALYTICS_CI') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'TRANSFORMING_WH_CI') }}"
+      schema: "{{ env_var('DBT_TARGET_SCHEMA', 'DBT_CI') }}"
+      threads: 8
+      query_tag: dbt_ci
+
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER_PROD') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE_PROD', 'TRANSFORMER_PROD') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE_PROD', 'ANALYTICS') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE_PROD', 'TRANSFORMING_WH_PROD') }}"
+      schema: "{{ env_var('DBT_TARGET_SCHEMA_PROD', 'CORE') }}"
+      threads: 16
+      query_tag: dbt_prod

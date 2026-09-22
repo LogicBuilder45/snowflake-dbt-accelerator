@@ -1,303 +1,187 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/dbt-1.7%2B-orange?style=flat-square&logo=dbt" />
-  <img src="https://img.shields.io/badge/Snowflake-compatible-29B5E8?style=flat-square&logo=snowflake" />
-  <img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" />
-</p>
+# ?? snowflake-dbt-accelerator
 
-# ❄️ snowflake-dbt-accelerator
+A practical, plug-and-play dbt starter project for Snowflake that gives teams a clean foundation for staging, testing, and analytics-ready marts without forcing unnecessary complexity.
 
-> A production-ready dbt project template for Snowflake enterprise data warehouses. Includes pre-built macros for common EDW patterns, a full testing framework, and a CI/CD pipeline out of the box.
+This repo is intentionally opinionated but lightweight: it helps new data teams move quickly while keeping the project easy to customize as requirements grow.
 
-Built for data engineers who are tired of reinventing the wheel on every project.
+## What is included
 
----
+- staging models with SQL hygiene and audit columns
+- reusable macros for surrogate keys, incremental filtering, and common tests
+- sample marts for customer and order analysis
+- dbt project-level defaults for Snowflake development workflows
+- example CI validation workflow for GitHub Actions
 
-## ✨ What's Included
+## Project layout
 
-| Category | What You Get |
-|---|---|
-| **Macros** | Surrogate keys, audit columns, incremental load strategies, SCD Type 2 |
-| **Testing** | Generic + singular tests, data quality framework, freshness checks |
-| **CI/CD** | GitHub Actions workflows for slim CI, full test runs, and production deploys |
-| **Documentation** | Auto-generated dbt docs with custom overview page |
-| **Seeds** | Reference data patterns (date dimensions, fiscal calendars) |
-| **Snapshots** | SCD Type 2 snapshot configurations for common patterns |
-
----
-
-## 🚀 Quick Start
-
-### 1. Use this template
-
-Click **"Use this template"** on GitHub, or clone directly:
-
-```bash
-git clone https://github.com/LogicBuilder45/snowflake-dbt-accelerator.git my-dw-project
-cd my-dw-project
+```text
+snowflake-dbt-accelerator/
++-- .github/
+�   +-- workflows/
+�       +-- dbt-ci.yml
++-- analyses/
++-- docs/
++-- macros/
+�   +-- audit/
+�   +-- incremental/
+�   +-- testing/
++-- models/
+�   +-- marts/
+�   +-- staging/
++-- snapshots/
++-- tests/
++-- .env.example
++-- .gitignore
++-- CONTRIBUTING.md
++-- LICENSE
++-- README.md
++-- dbt_project.yml
++-- packages.yml
++-- profiles.yml.sample
++-- .gitignore
 ```
 
-### 2. Install dependencies
+## Quick start
+
+### 1) Clone the repo
 
 ```bash
+git clone https://github.com/LogicBuilder45/snowflake-dbt-accelerator.git my-dbt-project
+cd my-dbt-project
+```
+
+### 2) Install Python and dbt dependencies
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 pip install dbt-snowflake
+```
+
+### 3) Install dbt packages
+
+```bash
 dbt deps
 ```
 
-### 3. Configure your profile
+### 4) Configure your Snowflake profile
 
-Copy the sample profile and fill in your Snowflake credentials:
+Copy the sample profile into your local dbt config and adjust the values for your environment:
 
 ```bash
-cp profiles/profiles.yml.sample ~/.dbt/profiles.yml
+cp profiles.yml.sample ~/.dbt/profiles.yml
 ```
 
+Then update the values to match your account and warehouse:
+
 ```yaml
-# ~/.dbt/profiles.yml
 snowflake_dbt_accelerator:
   target: dev
   outputs:
     dev:
       type: snowflake
-      account: "<your_account>"
+      account: "<your_account>.snowflakecomputing.com"
       user: "<your_user>"
-      password: "<your_password>"       # or use key-pair / SSO
+      password: "<your_password>"
       role: TRANSFORMER
       database: ANALYTICS_DEV
       warehouse: TRANSFORMING_WH
-      schema: DBT_{{ env_var('USER', 'DEV') }}
+      schema: DBT_DEV
       threads: 4
-    prod:
-      type: snowflake
-      account: "<your_account>"
-      user: "<your_svc_account>"
-      private_key_path: /secrets/snowflake_key.p8
-      role: TRANSFORMER_PROD
-      database: ANALYTICS
-      warehouse: TRANSFORMING_WH_PROD
-      schema: CORE
-      threads: 8
+      query_tag: dbt_dev
 ```
 
-### 4. Validate the setup
+### 5) Validate your setup
 
 ```bash
 dbt debug
-dbt compile
 ```
 
----
-
-## 📦 Macro Reference
-
-### Surrogate Keys
-
-```sql
--- Generate a deterministic surrogate key from one or more columns
-{{ surrogate_key(['customer_id', 'order_id']) }}
-
--- With custom algorithm (default: MD5; options: SHA256)
-{{ surrogate_key(['customer_id'], algorithm='sha256') }}
-```
-
-### Audit Columns
-
-```sql
--- Add standard audit columns to any model
-{{ audit_columns() }}
--- Adds: _loaded_at, _source_relation, _dbt_run_id
-```
-
-### Incremental Strategies
-
-```sql
--- Append-only incremental with configurable lookback window
-{{ config(
-    materialized='incremental',
-    incremental_strategy='merge',
-    unique_key='event_id'
-) }}
-
-{{ incremental_filter(
-    timestamp_column='event_timestamp',
-    lookback_days=3
-) }}
-```
-
-### SCD Type 2
-
-```sql
--- Full SCD Type 2 implementation as a snapshot
-{{ config(
-    target_schema='snapshots',
-    unique_key='customer_id',
-    strategy='timestamp',
-    updated_at='updated_at'
-) }}
-
-{{ scd2_snapshot(source_model='stg_customers') }}
-```
-
----
-
-## 🏗️ Project Structure
-
-```
-snowflake-dbt-accelerator/
-├── macros/
-│   ├── surrogate_keys/       # Key generation macros
-│   ├── audit/                # Audit column macros
-│   ├── incremental/          # Incremental load helpers
-│   └── testing/              # Custom test macros
-├── models/
-│   ├── staging/              # Raw source cleaning (1:1 with source tables)
-│   ├── intermediate/         # Business logic joins & transformations
-│   └── marts/                # Final consumer-facing models
-├── tests/
-│   ├── generic/              # Reusable generic tests
-│   └── singular/             # One-off data quality assertions
-├── snapshots/                # SCD Type 2 snapshot definitions
-├── seeds/                    # Static reference data
-├── analyses/                 # Ad-hoc analytical SQL
-├── docs/                     # Custom documentation overrides
-└── .github/
-    └── workflows/            # CI/CD pipeline definitions
-```
-
----
-
-## 🧪 Testing Framework
-
-This template ships with an opinionated testing strategy:
-
-### Layer-by-layer testing philosophy
-
-| Layer | Test Focus |
-|---|---|
-| `staging` | Source freshness, not-null on PKs, accepted values |
-| `intermediate` | Referential integrity, row count assertions |
-| `marts` | Business rule validation, no fan-out joins |
-
-### Running tests
+### 6) Run the project
 
 ```bash
-# Run all tests
-dbt test
-
-# Run only staging tests
-dbt test --select staging
-
-# Run tests and show failures inline
-dbt test --store-failures
+dbt build
 ```
 
-### Custom generic tests included
+## Repository conventions
 
-- `test_row_count_in_range` — Assert a model has between N and M rows
-- `test_no_future_dates` — Assert no timestamps are in the future
-- `test_referential_integrity` — Cross-model FK validation with helpful error output
-- `test_sum_equals` — Assert a metric column sums to an expected value
+This project follows a straightforward, common-sense dbt structure:
 
----
+- `staging` models clean and standardize raw data
+- `marts` models create business-facing tables for reporting and consumption
+- macros centralize repeatable SQL patterns
+- generic tests help enforce data quality without overcomplicating the project
 
-## ⚙️ CI/CD Pipelines
+## Included macro patterns
 
-### Slim CI (on Pull Request)
+### `surrogate_key`
 
-Runs only models and tests affected by the PR using dbt's `state:modified+` selector. Keeps PR checks fast even on large projects.
-
-```yaml
-# .github/workflows/slim_ci.yml
-# Triggers on: pull_request to main
-# Does: dbt build --select state:modified+ --defer --state ./prod-artifacts
-```
-
-### Full Test Run (nightly)
-
-```yaml
-# .github/workflows/nightly.yml
-# Triggers on: schedule (2am UTC)
-# Does: dbt build --full-refresh (for incremental models), dbt source freshness
-```
-
-### Production Deploy (on merge to main)
-
-```yaml
-# .github/workflows/prod_deploy.yml
-# Triggers on: push to main
-# Does: dbt build --target prod, uploads manifest.json as artifact for slim CI
-```
-
----
-
-## 🔧 Snowflake-Specific Optimizations
-
-This template encodes Snowflake best practices by default:
-
-- **Clustering keys** — Macro helper to declare cluster keys that match your query patterns
-- **Transient tables** — Staging models use `transient=true` to avoid Fail-Safe storage costs
-- **Query tags** — Every dbt run is tagged with `dbt_model`, `dbt_run_id`, `target_name` for cost attribution in Snowflake's `QUERY_HISTORY`
-- **Warehouse scaling** — Multi-cluster warehouse recommendations documented per model layer
-- **Zero-copy cloning** — `clone_for_dev.sql` script to clone prod → dev database in seconds
-
----
-
-## 📋 Conventions
-
-### Model naming
-
-```
-stg_<source>__<entity>.sql       # staging (double underscore separates source from entity)
-int_<verb>_<entity>.sql          # intermediate
-fct_<entity>.sql                 # fact table
-dim_<entity>.sql                 # dimension table
-```
-
-### Column naming
+Creates a deterministic hash key for entity records.
 
 ```sql
--- Primary keys always end in _id
-customer_id, order_id
-
--- Foreign keys reference the target table
-customer_id (in orders model = FK to dim_customer)
-
--- Dates end in _date, timestamps end in _at
-created_date, updated_at, loaded_at
-
--- Booleans start with is_ or has_
-is_active, has_subscription
+{{ surrogate_key(['customer_id', 'order_id']) }}
 ```
 
----
+### `audit_columns`
 
-## 🤝 Contributing
+Adds standard auditing metadata to staging outputs.
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a PR.
-
-### Ideas for contributions
-- New macro patterns
-- Additional generic tests
-- Platform-specific optimizations
-- Documentation improvements
-
----
-
-## 📖 Citation
-
-If you use this project in your work or reference it in a publication, please cite it:
-
-```bibtex
-@software{snowflake_dbt_accelerator,
-  title  = {snowflake-dbt-accelerator: A production-ready dbt template for Snowflake EDW},
-  author = {Saqib Khan},
-  year   = {2026},
-  url    = {https://github.com/LogicBuilder45/snowflake-dbt-accelerator}
-}
+```sql
+select
+    customer_id,
+    {{ audit_columns() }}
+from {{ source('raw', 'customers') }}
 ```
 
----
+### `incremental_filter`
 
-## 📄 License
+Keeps incremental logic safe and predictable with late-arriving data handling.
 
-Apache 2.0 — see [LICENSE](LICENSE) for details.
+```sql
+{% if is_incremental() %}
+    {{ incremental_filter('ordered_at', lookback_days=3) }}
+{% endif %}
+```
+
+## Testing approach
+
+The project ships with custom dbt tests for common patterns such as:
+
+- row count thresholds
+- no future dates
+- not-null proportion checks
+- auditability of staging and marts
+
+Run them with:
+
+```bash
+dbt test
+```
+
+## CI/CD
+
+A GitHub Actions workflow is included to make validation easier for contributors and teams:
+
+```bash
+.github/workflows/dbt-ci.yml
+```
+
+It is designed to install dependencies and run a lightweight dbt validation pass as a baseline for pull requests.
+
+## Customization guide
+
+To make this repo useful for a real warehouse, you will usually:
+
+1. swap the source names in `models/staging/_sources.yml`
+2. replace sample model logic with your own downstream business rules
+3. adjust warehouse names, database names, and deployment targets in `profiles.yml.sample`
+4. extend macros and tests for your domain language and quality standards
+
+## Contributing
+
+Contributions are welcome. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for the project workflow and expectations.
+
+## License
+
+This project is licensed under the Apache 2.0 License. See [LICENSE](LICENSE) for details.

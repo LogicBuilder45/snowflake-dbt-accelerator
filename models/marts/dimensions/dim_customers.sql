@@ -23,7 +23,7 @@ order_summary as (
         max(ordered_at)                          as most_recent_order_at,
         count(*)                                 as lifetime_order_count,
         sum(order_amount)                        as lifetime_revenue,
-        count_if(order_status = "cancelled")     as cancelled_order_count
+        count_if(order_status = 'cancelled')     as cancelled_order_count
     from {{ ref("stg_orders") }}
     group by 1
 
@@ -52,10 +52,10 @@ final as (
 
         -- derived segment
         case
-            when o.lifetime_order_count is null then "never_ordered"
-            when o.lifetime_order_count = 1     then "one_time"
-            when o.lifetime_order_count <= 5    then "repeat"
-            else                                     "loyal"
+            when o.lifetime_order_count is null then 'never_ordered'
+            when o.lifetime_order_count = 1     then 'one_time'
+            when o.lifetime_order_count <= 5    then 'repeat'
+            else                                     'loyal'
         end                                      as customer_segment,
 
         -- dates

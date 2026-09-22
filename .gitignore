@@ -1,0 +1,24 @@
+# dbt
+.target/
+target/
+dbt_packages/
+logs/
+.dbt/
+*.log
+
+# local profiles and secrets
+profiles/profiles.yml
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
